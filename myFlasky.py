@@ -1,13 +1,18 @@
 from flask import Flask
 from flask import request
+from flask import make_response
+from flask import redirect
+from flask_script import Manager
 
 app = Flask(__name__)
+manager = Manager(app)
 
 
 @app.route('/')
 def hello_world():
-    user_agent = request.headers.get("User-Agent")
-    return '<p>Your Browser is {}<p>'.format(user_agent)
+    response = make_response("<h1>make response</h1>")
+    response.set_cookie('answer', '1')
+    return response
 
 
 @app.route('/user/<name>')
@@ -16,4 +21,4 @@ def user(name):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    manager.run()
