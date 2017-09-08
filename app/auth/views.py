@@ -23,7 +23,6 @@ def register():
 
 
 @auth.route('/login', methods=['GET', 'POST'])
-@login_manager.user_loader()
 def login():
     form = LoginForm()
     if form.validate_on_submit():

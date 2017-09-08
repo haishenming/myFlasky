@@ -5,7 +5,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
-from . import db
+from . import db, login_manager
 
 
 class Role(db.Model):
@@ -18,7 +18,7 @@ class Role(db.Model):
         return '<Role {name}>'.format(name=self.name)
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True, index=True)
@@ -39,3 +39,8 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User {name}>'.format(name=self.name)
+
+# 没有这个函数就好报错，为什么？
+@login_manager.user_loader
+def user_load(user_id):
+    return User.query.get(int(user_id))
