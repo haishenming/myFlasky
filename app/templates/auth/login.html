@@ -7,12 +7,17 @@
     <div class="page-header">
         <h1>Login</h1>
     </div>
+    <p> New user?
+        <a href="{{ url_for('auth.register') }}"> Click here to
+        register
+        </a>
+    </p>
     {% for message in get_flashed_messages() %}
-    <div class="alert alert-warning">
-        <button type="button" class="close" data-dismiss="alert">&times;
-        </button>
-        {{ message }}
-    </div>
+        <div class="alert alert-warning">
+            <button type="button" class="close" data-dismiss="alert">&times;
+            </button>
+            {{ message }}
+        </div>
     {% endfor %}
     <div class="col-md-4">
         {{ wtf.quick_form(form) }}

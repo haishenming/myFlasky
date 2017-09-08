@@ -6,9 +6,9 @@
 
 {% block page_content %}
     {% if current_user.is_authenticated %}
-        {{ current_user.name }}
+        <h1>{{ current_user.name }}</h1>
     {% else %}
-        Stranger
+        <h1>Stranger</h1>
     {% endif %}
 {% endblock %}
 
