@@ -4,6 +4,7 @@
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from flask import current_app
 
 from . import db, login_manager
 
@@ -14,10 +15,30 @@ class Role(db.Model):
     name = db.Column(db.String(64), unique=True)
     users = db.relationship('User', backref='role', lazy='dynamic')
     default = db.Column(db.Boolean, default=False, index=True)
-    permissions = db.Column(db.String(12))
+    permissions = db.Column(db.Integer)
 
     def __repr__(self):
         return '<Role {name}>'.format(name=self.name)
+
+    @staticmethod
+    def insert_roles():
+        roles = {
+            "User": (Permission.FOLLOW | Permission.COMMENT |
+                     Permission.WREITE_ARTICLES, True),
+            "Moderator": (Permission.FOLLOW | Permission.COMMENT |
+                          Permission.WREITE_ARTICLES | Permission.MODERATE_COMMENTS,
+                          False),
+            "Administor": (0xff, False)
+        }
+        for r in roles:
+            role = Role.query.filter_by(name=r).first()
+            print(role)
+            if role is None:
+                role = Role(name=r)
+            role.permissions = roles[r][0]
+            role.default = roles[r][1]
+            db.session.merge(role)
+        db.session.commit()
 
 
 class User(db.Model, UserMixin):
@@ -27,6 +48,15 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(64), unique=True, index=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
+
+    def __init__(self, **kwargs):
+        super(User, self).__init__(**kwargs)
+
+        if self.role is None:
+            if self.email == current_app.config['FLASKY_ADMIN']:
+                self.role = Role.query.filter_by(permissions=0xff).first()
+            if self.role is None:
+                self.role = Role.query.filter_by(default=True).first()
 
     @property
     def password(self):
@@ -46,3 +76,16 @@ class User(db.Model, UserMixin):
 @login_manager.user_loader
 def user_load(user_id):
     return User.query.get(int(user_id))
+
+
+class Permission:
+    """
+    权限表示
+    """
+    FOLLOW = 0x01
+    COMMENT = 0x02
+    WREITE_ARTICLES = 0x04
+    MODERATE_COMMENTS = 0x08
+    ADMINISTOR = 0x08
+
+
